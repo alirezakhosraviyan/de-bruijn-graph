@@ -17,10 +17,13 @@ def get_fragility(graph):
 
 def get_robustness(graph: nx.Graph):
     """returns the robustness value"""
-    list_of_degrees = graph.degree
+    temp_graph = graph.copy()
+    list_of_degrees = temp_graph.degree
     sorted_list_of_degrees = sorted(list_of_degrees, key=lambda i: i[1], reverse=True)
-    graph.remove_node(sorted_list_of_degrees[0][0])
 
-    degrees = next(nx.connected_components(graph))
+    total_sizes = 0
+    for cur in sorted_list_of_degrees:
+        temp_graph.remove_node(cur[0])
+        total_sizes += temp_graph.size()
 
-    return sum(degrees) / len(degrees)
+    return total_sizes / len(sorted_list_of_degrees)
