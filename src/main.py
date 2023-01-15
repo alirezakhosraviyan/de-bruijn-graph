@@ -1,36 +1,42 @@
+import networkx as nx
+import matplotlib.pyplot as plt
 from itertools import product
 
 
-def de_bruijn(k, n):
-    alphabet = list(map(str, range(k)))
-
-    a = [0] * k * n
-    sequence = []
-
-    def db(t, p):
-        if t > n:
-            if n % p == 0:
-                sequence.extend(a[1:p + 1])
-        else:
-            a[t] = a[t - p]
-            db(t + 1, p)
-            for j in range(a[t - p] + 1, k):
-                a[t] = j
-                db(t + 1, t)
-
-    db(1, 1)
-    return ''.join(alphabet[i] for i in sequence)
-
-
-def check_solution(k, n, sol):
-    """Check against the solution sol"""
-    for p in product(''.join(map(str, range(k))), repeat=n):
+def create_de_bruijn_graph(k, n):
+    g = nx.DiGraph()
+    for p in product(tuple(map(str, range(k))), repeat=n):
         code = ''.join(p)
-        if code not in sol:
-            return False
-    return True
+        u = str(code).zfill(n)
+        tmp = u[1:]
+        for i in range(k):
+            v = tmp + str(i)
+            g.add_edge(u, v, weight=i)
+    return g
 
 
-ls = de_bruijn(10, 4)
-ls += ls[:3]  # wrap around
-print('Good solution?', check_solution(10, 4, ls))
+def de_bruijn_nx(k, n):
+    g = create_de_bruijn_graph(k, n)
+    ls = nx.eulerian_circuit(g)
+    res = ''.join(map(str, (g.get_edge_data(*e)['weight'] for e in ls)))
+    return res
+
+
+def draw_de_bruijn_graph(g):
+    plt.figure(figsize=(20,20), dpi=80)
+    nx.draw_networkx(
+        g, pos=nx.circular_layout(g),
+        node_shape='o', node_size=4000, font_size=20,
+        edge_color='#555555', width=3.0
+    )
+    nx.draw_networkx_edge_labels(
+        g, pos=nx.circular_layout(g),
+        edge_labels=nx.get_edge_attributes(g, 'weight'),
+        font_size=24, label_pos=0.25, rotate=False
+    )
+    plt.axis('off')
+    plt.show()
+
+
+draw_de_bruijn_graph(create_de_bruijn_graph(2, 3))
+
