@@ -17,9 +17,8 @@ def create_de_bruijn_graph(k, n):
 
 def de_bruijn_nx(k, n):
     g = create_de_bruijn_graph(k, n)
-    ls = nx.eulerian_circuit(g)
-    res = ''.join(map(str, (g.get_edge_data(*e)['weight'] for e in ls)))
-    return res
+    lc = nx.eulerian_circuit(g)
+    return ''.join(map(str, (g.get_edge_data(*e)['weight'] for e in lc)))
 
 
 def draw_de_bruijn_graph(g):

@@ -10,7 +10,7 @@ from .de_bruijn_graph import create_de_bruijn_graph
 
 def get_random_graphe(degree_sequence) -> nx.Graph:
     G = nx.random_degree_sequence_graph(degree_sequence, seed=42)
-    nx.draw(G, with_labels=True, font_weight='bold')
+    nx.draw(G, with_labels=True, font_weight="bold")
     plt.show()
     return G
 
@@ -54,7 +54,7 @@ def show_linear_model():
     np.polyfit()
 
 
-def monte_carlo(shape):
+def calc_monte(shape):
     graph: nx.Graph = create_de_bruijn_graph(*shape)
     if not graph:
         return 0, 0, 0
@@ -63,41 +63,36 @@ def monte_carlo(shape):
     random.shuffle(nodes)
     connected = 0
 
-    for node in nodes:
+    while node := nodes.pop():
         graph.remove_node(node)
-        if graph and nx.is_weakly_connected(graph):
-            connected += 1
-        else:
+        if not graph or not nx.is_weakly_connected(graph):
             break
+        connected += 1
+
     p = connected / initial_edge_size
+    rob = 0
+    fraj = 0
     if graph:
-        R = len(max(nx.weakly_connected_components(
-            graph), key=len)) / initial_edge_size
-        F = get_fragility(graph)
-    else:
-        R = 0
-        F = 0
-    return p, F, R
+        rob = len(max(nx.weakly_connected_components(graph), key=len)) / initial_edge_size
+        fraj = get_fragility(graph)
+    return p, fraj, rob
 
 
-def fit_polynomial_and_draw(rfs):
-    if not rfs:
-        return
-    rfs.sort(key=lambda x: x[0])
-    pf = PolynomialFeatures(degree=2)
-    X = np.array([x[0] for x in rfs])
-    X = X.reshape(-1, 1)
-    y = np.array([x[1] for x in rfs])
-    X_poly = pf.fit_transform(X)
-    lin_reg = LinearRegression()
-    lin_reg.fit(X_poly, y)
-    plt.figure(figsize=(12, 10))
-    plt.scatter(X, y, c='blue')
-    plt.plot(X, lin_reg.predict(X_poly), color='red')
-    plt.xticks(color='white')
-    plt.yticks(color='white')
-    plt.xlabel('F', color='white')
-    plt.ylabel('R', color='white')
-    plt.show()
-
-
+def fit_polynomial_and_draw(inp):
+    if inp:
+        inp.sort(key=lambda x: x[0])
+        pf = PolynomialFeatures(degree=2)
+        X = np.array([x[0] for x in inp])
+        X = X.reshape(-1, 1)
+        y = np.array([x[1] for x in inp])
+        X_poly = pf.fit_transform(X)
+        lin_reg = LinearRegression()
+        lin_reg.fit(X_poly, y)
+        plt.figure(figsize=(12, 10))
+        plt.scatter(X, y, c="orange")
+        plt.plot(X, lin_reg.predict(X_poly), color="black")
+        plt.xticks(color="gray")
+        plt.yticks(color="gray")
+        plt.xlabel("F", color="gray")
+        plt.ylabel("R", color="gray")
+        plt.show()

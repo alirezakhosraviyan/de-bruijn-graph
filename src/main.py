@@ -1,6 +1,7 @@
 import click
 from lib.de_bruijn_graph import draw_de_bruijn_graph, create_de_bruijn_graph
-from lib.tools import fit_polynomial_and_draw, get_robustness, monte_carlo
+from lib.tools import fit_polynomial_and_draw, get_robustness, calc_monte
+import time
 
 
 @click.group()
@@ -18,8 +19,8 @@ def show_de_bru(nodes, edges):
 
 
 @click.command(name="show-robustness")
-@click.option("-n", "--nodes", required=True, help="the number of nodes")
-@click.option("-e", "--edges", required=True, help="the number of edges")
+@click.option("-n", "--nodes", required=True, help="the number of nodes", type=int)
+@click.option("-e", "--edges", required=True, help="the number of edges", type=int)
 def show_robustness(nodes, edges):
     the_graph = create_de_bruijn_graph(nodes, edges)
     res = get_robustness(the_graph)
@@ -32,17 +33,16 @@ def show_robustness(nodes, edges):
 @click.option("-e", "--edges", required=True, help="the number of edges", type=int)
 @click.option("-s", "--simulation", required=True, help="the number of edges", type=int)
 def simulate(nodes, edges, simulation):
-    # by_probability represents the (F, R) tuple for 10 different cases of probability
-    # by_probability[0] corresponds to probability between 0.0 -> 0.1
-    # by_probability[1] corresponds to probability between 0.1 -> 0.2 and etc.
     by_probability = [[] for _ in range(10)]
-    for epoch in range(simulation):
-        for n in range(2, 5):
-            for k in range(2, 5):
-                p, F, R = monte_carlo((k, n))
-                by_probability[int(p * 10)].append((F, R))
-        print(f'Epoch {epoch} has successfully completed!')
 
+    start_time = time.time()
+    for sim in range(simulation):
+        for n in range(nodes, edges):
+            for k in range(nodes, edges):
+                p, F, R = calc_monte((k, n))
+                by_probability[int(p * 10)].append((F, R))
+
+    click.echo(f"Simulation completed for {simulation} in {time.time() - start_time} seconds")
     for rfs in by_probability:
         fit_polynomial_and_draw(rfs)
 
